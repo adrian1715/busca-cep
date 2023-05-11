@@ -185,7 +185,7 @@ if (isset($target)) {
 
 
   <script>
-    // to prevent form resubmssion
+    // para evitar form resubmssion
     if (window.history.replaceState) {
       window.history.replaceState(null, null, window.location.href);
     }
