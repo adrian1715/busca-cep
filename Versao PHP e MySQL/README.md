@@ -1,0 +1,3 @@
+# Bem-vindo ao Busca CEP
+
+Esse projeto utiliza a API do ViaCEP para obter endereços através do CEP que é inserido. Ao cadastrar um novo CEP, todos seus principais dados como rua, bairro, cidade, entre outros, são cadastrados no banco de dados e exibidos na área de Registros. Além disso, há uma verificação para o CEP inserido, impedindo registros de CEPs não válidos. Também é possível excluir um CEP já registrado clicando no botão X, em vermelho, bem ao lado de seu registro.
