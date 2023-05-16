@@ -4,7 +4,7 @@ require_once 'config.php';
 
 session_start();
 
-$cep = $_POST['cep'];
+$cep = filter_input(INPUT_POST, 'cep', FILTER_SANITIZE_STRING);
 
 if ($cep) {
     $res = file_get_contents("http://viacep.com.br/ws/$cep/json");
