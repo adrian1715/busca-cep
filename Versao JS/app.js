@@ -5,6 +5,7 @@ const estado = document.getElementById("estados");
 const cidade = document.getElementById("cidade");
 
 const loadingIcon = document.getElementById("loading-icon");
+let count = 0;
 
 // carregando as opções de estado e cidade
 document.addEventListener("DOMContentLoaded", () => {
@@ -64,7 +65,7 @@ cep.addEventListener("input", (e) => {
           estado.dispatchEvent(event);
           setTimeout(function () {
             cidade.value = data.localidade;
-          }, 500); // pequeno intervalo para carregar as cidades, antes de selecioná-la
+          }, 500); // pequeno intervalo para carregar as cidades, antes de selecionar uma delas
         });
       })
       .catch((err) => {
@@ -90,12 +91,14 @@ btnCadastrar.addEventListener("click", () => {
 // registrando os valores enviados
 form.addEventListener("submit", (e) => {
   e.preventDefault();
+  count++;
 
   const formData = new FormData(form);
   const data = [...formData.entries()];
 
   console.log(data);
 
+  // adicionando endereço
   const cep = data[0][1];
   const rua = data[1][1];
   const bairro = data[2][1];
@@ -103,18 +106,19 @@ form.addEventListener("submit", (e) => {
   const estados = data[4][1];
   const cidade = data[5][1];
 
-  const p = document.createElement("p");
-  p.style.display = "none";
   if (complemento) {
-    p.innerText = `${cep}: ${rua}, ${bairro}, ${complemento}, ${cidade}-${estados}`;
+    localStorage.setItem(
+      `address${count}`,
+      `${cep}: ${rua}, ${bairro}, ${complemento}, ${cidade}-${estados}`
+    );
   } else {
-    p.innerText = `${cep}: ${rua}, ${bairro}, ${cidade}-${estados}`;
+    localStorage.setItem(
+      `address${count}`,
+      `${cep}: ${rua}, ${bairro}, ${cidade}-${estados}`
+    );
   }
-  document.getElementById("bq-resultado").appendChild(p);
 
-  if (children.length > 1 && children[0].style.display != "none")
-    btnConsulta.innerText = "Atualizar";
-
+  // limpando inputs
   document.getElementById("cep").value = "";
   document.getElementById("rua").value = "";
   document.getElementById("bairro").value = "";
@@ -122,6 +126,7 @@ form.addEventListener("submit", (e) => {
   cidade.value = "Cidade";
   estado.value = "Estado";
 
+  // mensagem de confirmação
   const msg = document.createElement("span");
   msg.setAttribute("id", "message");
   msg.innerText = "Cadastrado com sucesso!";
@@ -144,11 +149,16 @@ form.addEventListener("submit", (e) => {
 });
 
 // exibe os registros
-const children = document.getElementById("bq-resultado").children;
 const btnConsulta = document.getElementById("btn-consultar");
+const addresses = Object.keys(localStorage)
+  .filter((key) => key.startsWith("address"))
+  .map((key) => localStorage.getItem(key));
 
 btnConsulta.addEventListener("click", () => {
-  for (let i = 0; i < children.length; i++) {
-    children[i].style.display = "block";
+  for (add of addresses) {
+    const p = document.createElement("p");
+    p.innerText = add;
+    p.appendChild(btn);
+    document.getElementById("bq-resultado").appendChild(p);
   }
 });
