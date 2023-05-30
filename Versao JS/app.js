@@ -92,6 +92,10 @@ btnCadastrar.addEventListener("click", () => {
 form.addEventListener("submit", (e) => {
   e.preventDefault();
 
+  if (document.getElementById("msg")) {
+    document.getElementById("msg").remove();
+  }
+
   const formData = new FormData(form);
   const data = [...formData.entries()];
 
@@ -108,7 +112,7 @@ form.addEventListener("submit", (e) => {
   if (
     // verificando se o cep é válido e único
     cep.match(cepPattern) &&
-    !addresses.some((item) => item.startsWith(cep))
+    !Object.values(localStorage).some((value) => value.startsWith(cep))
   ) {
     // registrando endereço
     if (!localStorage.id) {
@@ -125,10 +129,19 @@ form.addEventListener("submit", (e) => {
     }
     localStorage.setItem(`address${localId}`, item);
 
+    // adicionando novo endereço e botão de exclusão no painel de registros
     const p = document.createElement("p");
     p.innerText = item;
+    p.id = p.innerText.match(/^([^:]+)/)[1];
     p.style.display = "none";
     painelResultados.appendChild(p);
+
+    const btnExcluir = document.createElement("button");
+    btnExcluir.classList.add("delete-btn", "btn", "btn-danger", "ml-2", "mb-1");
+    btnExcluir.style.padding = "2px 8px";
+    btnExcluir.innerText = "X";
+    btnExcluir.style.display = "none";
+    p.appendChild(btnExcluir);
 
     // mensagem de confirmação
     const msg = document.createElement("span");
@@ -152,9 +165,6 @@ form.addEventListener("submit", (e) => {
     btnConsulta.setAttribute("disabled", "");
   } else {
     // exibindo mensagem de cep inválido
-    if (document.getElementById("msg")) {
-      document.getElementById("msg").remove();
-    }
     const msg = document.createElement("div");
     msg.setAttribute("id", "msg");
     msg.classList.add("alert", "alert-warning", "mt-4");
@@ -171,7 +181,7 @@ form.addEventListener("submit", (e) => {
   estado.value = "Estado";
 });
 
-// exibindo os registros
+// exibindo os registros ao carregar a página
 const btnConsulta = document.getElementById("btn-consultar");
 const painelResultados = document.querySelector("#bq-resultado");
 const addresses = Object.keys(localStorage)
@@ -182,12 +192,37 @@ const addresses = Object.keys(localStorage)
 for (add of addresses) {
   const p = document.createElement("p");
   p.innerText = add;
+  p.id = p.innerText.match(/^([^:]+)/)[1];
   p.style.display = "none";
   painelResultados.appendChild(p);
+
+  const btnExcluir = document.createElement("button");
+  btnExcluir.classList.add("delete-btn", "btn", "btn-danger", "ml-2", "mb-1");
+  btnExcluir.style.padding = "2px 8px";
+  btnExcluir.innerText = "X";
+  btnExcluir.style.display = "none";
+  p.appendChild(btnExcluir);
 }
 
+// exibindo os registros ao clicar em consultar
 btnConsulta.addEventListener("click", () => {
   for (p of painelResultados.children) {
     p.style.display = "block";
+
+    const btnExcluir = p.children[0];
+    btnExcluir.style.display = "inline-block";
+
+    // botão de exclusão de registro
+    btnExcluir.addEventListener("click", () => {
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        const storedCep = localStorage.getItem(key).match(/^([^:]+)/)[1];
+
+        if (storedCep == btnExcluir.parentElement.id) {
+          localStorage.removeItem(key);
+          btnExcluir.parentElement.remove();
+        }
+      }
+    });
   }
 });
