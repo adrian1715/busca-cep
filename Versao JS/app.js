@@ -3,8 +3,9 @@ const form = document.querySelector("form");
 const btnCadastrar = document.querySelector("#btn-cadastrar");
 const estado = document.getElementById("estados");
 const cidade = document.getElementById("cidade");
-
 const loadingIcon = document.getElementById("loading-icon");
+
+const cepPattern = /^[0-9]{5}-?[0-9]{3}$/;
 let count = 0;
 
 // carregando as opções de estado e cidade
@@ -49,9 +50,8 @@ cep.addEventListener("input", (e) => {
   e.preventDefault();
 
   let url = `http://viacep.com.br/ws/${cep.value}/json`;
-  const pattern = /^[0-9]{5}-?[0-9]{3}$/;
 
-  if (cep.value.match(pattern)) {
+  if (cep.value.match(cepPattern)) {
     fetch(url)
       .then((res) => {
         res.json().then((data) => {
@@ -91,7 +91,6 @@ btnCadastrar.addEventListener("click", () => {
 // registrando os valores enviados
 form.addEventListener("submit", (e) => {
   e.preventDefault();
-  count++;
 
   const formData = new FormData(form);
   const data = [...formData.entries()];
@@ -106,16 +105,61 @@ form.addEventListener("submit", (e) => {
   const estados = data[4][1];
   const cidade = data[5][1];
 
-  if (complemento) {
-    localStorage.setItem(
-      `address${count}`,
-      `${cep}: ${rua}, ${bairro}, ${complemento}, ${cidade}-${estados}`
-    );
+  if (
+    // verificando se o cep é válido e único
+    cep.match(cepPattern) &&
+    !addresses.some((item) => item.startsWith(cep))
+  ) {
+    // registrando endereço
+    if (!localStorage.id) {
+      localStorage.setItem("id", 1);
+    } else {
+      localStorage.setItem("id", parseInt(localStorage.id) + 1);
+    }
+    const localId = localStorage.id;
+
+    if (complemento) {
+      var item = `${cep}: ${rua}, ${bairro}, ${complemento}, ${cidade}-${estados}`;
+    } else {
+      var item = `${cep}: ${rua}, ${bairro}, ${cidade}-${estados}`;
+    }
+    localStorage.setItem(`address${localId}`, item);
+
+    const p = document.createElement("p");
+    p.innerText = item;
+    p.style.display = "none";
+    painelResultados.appendChild(p);
+
+    // mensagem de confirmação
+    const msg = document.createElement("span");
+    msg.setAttribute("id", "message");
+    msg.innerText = "Cadastrado com sucesso!";
+    msg.style.color = "green";
+
+    if (loadingIcon.style.display !== "inline-block") {
+      loadingIcon.style.display = "inline-block";
+    } else {
+      document.getElementById("message").replaceWith(loadingIcon);
+    }
+
+    setTimeout(function () {
+      loadingIcon.replaceWith(msg);
+      btnCadastrar.removeAttribute("disabled");
+      btnConsulta.removeAttribute("disabled");
+    }, 1000);
+
+    btnCadastrar.setAttribute("disabled", "");
+    btnConsulta.setAttribute("disabled", "");
   } else {
-    localStorage.setItem(
-      `address${count}`,
-      `${cep}: ${rua}, ${bairro}, ${cidade}-${estados}`
-    );
+    // exibindo mensagem de cep inválido
+    if (document.getElementById("msg")) {
+      document.getElementById("msg").remove();
+    }
+    const msg = document.createElement("div");
+    msg.setAttribute("id", "msg");
+    msg.classList.add("alert", "alert-warning", "mt-4");
+    msg.innerText = "CEP inválido!";
+    document.querySelector(".card-body").appendChild(msg);
   }
 
   // limpando inputs
@@ -123,42 +167,27 @@ form.addEventListener("submit", (e) => {
   document.getElementById("rua").value = "";
   document.getElementById("bairro").value = "";
   document.getElementById("complemento").value = "";
-  cidade.value = "Cidade";
+  document.getElementById("cidade").value = "Cidade";
   estado.value = "Estado";
-
-  // mensagem de confirmação
-  const msg = document.createElement("span");
-  msg.setAttribute("id", "message");
-  msg.innerText = "Cadastrado com sucesso!";
-  msg.style.color = "green";
-
-  if (loadingIcon.style.display !== "inline-block") {
-    loadingIcon.style.display = "inline-block";
-  } else {
-    document.getElementById("message").replaceWith(loadingIcon);
-  }
-
-  setTimeout(function () {
-    loadingIcon.replaceWith(msg);
-    btnCadastrar.removeAttribute("disabled");
-    btnConsulta.removeAttribute("disabled");
-  }, 1000);
-
-  btnCadastrar.setAttribute("disabled", "");
-  btnConsulta.setAttribute("disabled", "");
 });
 
-// exibe os registros
+// exibindo os registros
 const btnConsulta = document.getElementById("btn-consultar");
+const painelResultados = document.querySelector("#bq-resultado");
 const addresses = Object.keys(localStorage)
   .filter((key) => key.startsWith("address"))
-  .map((key) => localStorage.getItem(key));
+  .map((key) => localStorage.getItem(key))
+  .sort();
+
+for (add of addresses) {
+  const p = document.createElement("p");
+  p.innerText = add;
+  p.style.display = "none";
+  painelResultados.appendChild(p);
+}
 
 btnConsulta.addEventListener("click", () => {
-  for (add of addresses) {
-    const p = document.createElement("p");
-    p.innerText = add;
-    p.appendChild(btn);
-    document.getElementById("bq-resultado").appendChild(p);
+  for (p of painelResultados.children) {
+    p.style.display = "block";
   }
 });
