@@ -206,23 +206,37 @@ for (add of addresses) {
 
 // exibindo os registros ao clicar em consultar
 btnConsulta.addEventListener("click", () => {
-  for (p of painelResultados.children) {
-    p.style.display = "block";
+  const noRegisters = document.getElementById("warning-msg");
 
-    const btnExcluir = p.children[0];
-    btnExcluir.style.display = "inline-block";
+  if (painelResultados.children.length <= 0 && !noRegisters) {
+    const p = document.createElement("p");
+    p.id = "warning-msg";
+    p.innerText = "Sem registros disponíveis!";
+    document.getElementById("bq-resultado").appendChild(p);
+  } else if (
+    (painelResultados.children.length !== 1 && noRegisters) ||
+    !noRegisters
+  ) {
+    // quando há registros
+    if (noRegisters) document.getElementById("warning-msg").remove();
+    for (let p of painelResultados.children) {
+      p.style.display = "block";
 
-    // botão de exclusão de registro
-    btnExcluir.addEventListener("click", () => {
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        const storedCep = localStorage.getItem(key).match(/^([^:]+)/)[1];
+      const btnExcluir = p.children[0];
+      btnExcluir.style.display = "inline-block";
 
-        if (storedCep == btnExcluir.parentElement.id) {
-          localStorage.removeItem(key);
-          btnExcluir.parentElement.remove();
+      // botão de exclusão de registro
+      btnExcluir.addEventListener("click", () => {
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          const storedCep = localStorage.getItem(key).match(/^([^:]+)/)[1];
+
+          if (storedCep == btnExcluir.parentElement.id) {
+            localStorage.removeItem(key);
+            btnExcluir.parentElement.remove();
+          }
         }
-      }
-    });
+      });
+    }
   }
 });
